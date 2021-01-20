@@ -9,8 +9,10 @@ Logging is made local to the D: drive for viewing and to collect prior buy/sell 
 
 To Do:
   
-  ** Clean up the code -- its works but its messy **
-  Gather prior buy sell from Coinbase API if no log file selected/created.
-  Ask for currency to trade with along with error correction if typed incorrect  - BTC = BTC-USD.
-  Set size limits based on currency? or set size limt based funds? I dont know yet.
-  Multi-currency watch/trade?
+    ** Clean up the code -- its works but its messy **
+
+    Ask for currency to trade with along with error correction if typed incorrect  - BTC = BTC-USD.
+  
+    Set size limits based on currency? or set size limt based funds? I dont know yet.
+  
+    Multi-currency watch/trade?
