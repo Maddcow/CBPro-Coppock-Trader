@@ -74,22 +74,24 @@ owned = float(auth_client.get_account(specificID)['available'])
 newData = auth_client.get_product_ticker(product_id=currency)
 currentPrice=newData['price']
 possibleIncome = float(currentPrice) * owned
-possibleprofit = (float(possibleIncome) * (1 + fee)) - float(Buyvolume)
-portfolioS = float(possibleIncome) + float(wallet)
+portfolioS = float(possibleIncome) + float(wallet) 
 
+# Get last trade id
+getfills=list(auth_client.get_fills(product_id = currency))
+csvfill = [ getfills[0], None ]
+csvfill = str(csvfill)
+pasttrade = csvfill[csvfill.index(tradel)+len(tradel):csvfill.index(trader)]
+
+# If owning crypto currency - get the buy price and volume
 if not owned == 0.0:
     funding = float(funding) - float(possibleIncome)
-    with open(buysellLog,'r') as file:
-        opened_file = file.readlines()
-        csvfile = opened_file[-1].split(',')[7]
-        csvprice = csvfile.translate({ord(i): None for i in "'price': "})
-        Buyprice = format(float(csvprice), '.5f')
-        pasttrade = opened_file[-1].split(',')[1]
-        pasttrade = pasttrade.translate({ord(i): None for i in "'trade_id': "}) 
-        pastvolume = opened_file[-1].split(',')[12]
-        pastvolume = pastvolume[pastvolume.index("'usd_volume': '")+len("'usd_volume': '"):pastvolume.index("'}")]
-        Buyvolume = format(float(pastvolume), '.5f')
- 
+    csvprice = csvfill[csvfill.index(pricel)+len(pricel):csvfill.index(pricer)]
+    Buyprice = format(float(csvprice), '.5f')
+    csvvolume = csvfill[csvfill.index(voll)+len(voll):csvfill.index(volr)]
+    Buyvolume = format(float(csvvolume), '.5f')
+    possibleprofit = (float(possibleIncome) * (1 + fee)) - float(Buyvolume)
+    portfolioS = float(portfolioS) - float(possibleprofit)
+
 # Verify if orders are pending and set varibles
 getorders=list(auth_client.get_orders(id=specificID))
 if getorders == []:
@@ -113,30 +115,30 @@ def Details():
     # Color code if Buying or Selling
     if owned == 0.0:
       print("  Iteration =", iteration, "     Buys =", iterationbuy, "     Sells =", iterationsell \
-            , "     Cancels =", iterationcancel, "             Buy/Sell =", colors['RED'], "Buying", colors['reset'])
+            , "     Cancels =", iterationcancel, "               Buy/Sell =", colors['RED'], "Buying", colors['reset'])
     else:
       print("  Iteration =", iteration, "     Buys =", iterationbuy, "     Sells =", iterationsell \
-            , "     Cancels =", iterationcancel, "             Buy/Sell =", colors['GREEN'], "Selling", colors['reset'])
+            , "     Cancels =", iterationcancel, "               Buy/Sell =", colors['GREEN'], "Selling", colors['reset'])
     
     print("=====================================================================================================")
     # Display possible profit price if owning an crypto currency
     if owned == 0.0:
       print(" ", currency, "Price =",colors['YELLOW'], currentPrice, colors['reset'])
     else:
-      print(" ", currency, "Price =",colors['YELLOW'], currentPrice, colors['reset'], "   " + currency + " Owned =", owned, \
-          "       Bought at =", Buyprice, "        Profit =", (format(possibleprofit, '.5f')))
+      print(" ", currency, "Price =",colors['YELLOW'], currentPrice, colors['reset'], "   Own =", owned, \
+          "   Bought at =", Buyprice, "   Profit =", (format(possibleprofit, '.5f')))
 
     print("=====================================================================================================")       
     print("  Stop Loss : Current =", (format(stoploss, '.5f')), "    Limit =", (format(stoplosslimit, '.5f')), \
-        "                   Profit/Loss =", (format(portfolioD, '.5f')))
+        "                     Profit/Loss =", (format(portfolioD, '.5f')))
     # Display wallet and profit price if owning an crypto currency
     if owned == 0.0:    
-      print("  Portfolio =", portfolioR)
+      print("  Portfolio =", (format(portfolioR, '.5f')))
     else:
-      print("  Portfolio =", portfolioR, "    Wallet = ", wallet, "   " + currency + " =", (format(possibleIncome, '.5f')))
+      print("  Portfolio =", (format(portfolioR, '.5f')), "    Wallet = ", wallet, "   " + currency + " =", (format(possibleIncome, '.5f')))
     print("=====================================================================================================")
     print("  ", colors['CYAN'], orderstatus, colors['reset'])
-    print(" ", *buysell_log, sep='\n')
+    print(*buysell_log, sep='\n')
 
 #############################################################################################################################
                 ### Begin Loop and get Historic Data ###
@@ -218,7 +220,7 @@ while True:
     possibleIncome = float(currentPrice) * owned
     possibleprofit = (float(possibleIncome) * (1 + fee)) - float(Buyvolume)
     portfolioR = float(possibleIncome) + float(wallet)
-    portfolioD = float(portfolioS) - float(portfolioR)
+    portfolioD = float(portfolioR) - float(portfolioS)
 
 #############################################################################################################################
                              ###Decision Making###
@@ -242,7 +244,7 @@ while True:
             auth_client.cancel_all(product_id=currency)
             orderstatus = "  Cancelling a" + csvorderbuy + " order for " + str(csvordersize) + " " + currency + ". Loop limit reached."
             
-    # Get last buy/sell and write to log
+    # Get last buy/sell order fills
     getfills=list(auth_client.get_fills(product_id = currency))
     csvfill = [ getfills[0], None ]
     csvfill = str(csvfill)
@@ -268,13 +270,13 @@ while True:
             file_object.write(csvfill)
             funding = float(funding) + float(csvvolume)
             if str(csvvolume) > str(Buyvolume):
-                buysell = " ", time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Profit*"
+                buysell = time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Profit*"
                 file_object.write(",Profit")
                 buysell_log.append(buysell)
                 file_object.write('\n')
 
             else:
-                buysell = " ", time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Loss*"
+                buysell = time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Loss*"
                 file_object.write(",Loss")
                 buysell_log.append(buysell)
                 file_object.write('\n')
@@ -284,7 +286,7 @@ while True:
             iterationbuy +=1
             EmailSubject = "CBPro - Buy"
             file_object.write(csvfill)
-            buysell = " ", time_string + " - Brought " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume)
+            buysell = time_string + " - Brought " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume)
             file_object.write(",Buy")
             Buyvolume = str(csvvolume)
             Buyprice = format(float(csvprice), '.5f')
@@ -310,7 +312,7 @@ while True:
         # Place the order
         auth_client.place_limit_order(product_id=currency, side='buy', price=currentBuy, size=sizelimit)
         time.sleep(0.5)
-        bidbuysell = " ", time_string + " - BUY Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentBuy + "/Coin."
+        bidbuysell = time_string + " - BUY Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentBuy + "/Coin."
 
         # Update variables
         orderstatus = bidbuysell
@@ -322,7 +324,7 @@ while True:
         # Place the order
         auth_client.place_limit_order(product_id=currency, side='sell', price=currentSell, size=sizelimit)
         time.sleep(0.5)
-        bidbuysell = " ", time_string + " - SELL Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentSell + "/Coin."
+        bidbuysell = time_string + " - SELL Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentSell + "/Coin."
 
         # Update variables
         orderstatus = bidbuysell
@@ -340,7 +342,7 @@ while True:
         if not owned == 0.0:
             # Place the order
             auth_client.place_market_order(product_id=currency, side='sell', size=sizelimit)
-            bidbuysell = " ", time_string + " - SELL Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentSell + "/Coin."
+            bidbuysell = time_string + " - SELL Limit order placed for " + str(sizelimit) + " " + currency + " at " + currentSell + "/Coin."
             time.sleep(1)
         
         getorders=list(auth_client.get_orders(id=specificID))
@@ -355,7 +357,7 @@ while True:
             csvfee = csvfill[csvfill.index(feel)+len(feel):csvfill.index(feer)]
             csvvolume = csvfill[csvfill.index(voll)+len(voll):csvfill.index(volr)]
             if str(csvtrade) > str(pasttrade):
-                buysell = " ", time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Stop Loss*"
+                buysell = time_string + " -  Sold   " + str(csvsize) + " " + currency + " for " + str(csvprice) + "/Coin.  TOTAL = " + str(csvvolume) + "   *Stop Loss*"
                 buysell_log.append(buysell)
                 file_object.write(",Stop Loss")
                 file_object.write('\n')
@@ -386,9 +388,7 @@ while True:
     if test == True:
         print("- - - - TESTING TESTING TESTING - - - - -")
         Details()
-        print('\n')
         # Begin Test script
-
 
         # End Test script
         print('\n')
