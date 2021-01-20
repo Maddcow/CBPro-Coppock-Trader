@@ -1,4 +1,6 @@
 # CBPro-Coppock-Trader
+![image](https://user-images.githubusercontent.com/37763928/105216791-07552100-5b21-11eb-9273-e48c19359b1a.png)
+
 This is a trading bot using the Coinbase Pro API. It uses Coppock values and Weight Moving Average (WMA) to place limit buy and sell orders. 
 It will also send out an authenticated email via gmail once a buy or sell order has been confirmed. If an order is placed and not filled,
 it will be canceled after 30 mins (3 loops) and the buy/sell varible will be active again to replace an order.
@@ -6,6 +8,7 @@ it will be canceled after 30 mins (3 loops) and the buy/sell varible will be act
 There is a stop loss in place along with a way to update  the stop loss limit if the profit level is 2x the stop loss limit. 
 
 Logging is made local to the D: drive for viewing and to collect prior buy/sell info.
+
 
 To Do:
   
