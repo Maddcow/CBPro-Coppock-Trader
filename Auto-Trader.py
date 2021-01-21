@@ -242,7 +242,7 @@ while True:
             csvordersize = csvorders[csvorders.index("'size': '")+len("'size': '"):csvorders.index("', 'product_id': '")]
             csvorderopen = csvorders[csvorders.index(statusl)+len(statusl):csvorders.index(statusr)]
             auth_client.cancel_all(product_id=currency)
-            orderstatus = "  Cancelling a" + csvorderbuy + " order for " + str(csvordersize) + " " + currency + ". Loop limit reached."
+            orderstatus = "  Cancelling a " + csvorderbuy + " order for " + str(csvordersize) + " " + currency + ". Loop limit reached."
             
     # Get last buy/sell order fills
     getfills=list(auth_client.get_fills(product_id = currency))
